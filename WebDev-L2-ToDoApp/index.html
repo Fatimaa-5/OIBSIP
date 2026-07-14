@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskMaster - Plan better. Do more.</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+    :root{
+        --bg: #0a0d14;
+        --card: rgba(18, 22, 32, 0.85);
+        --card-light: rgba(26, 31, 46, 0.85);
+        --red: #ff3b3b;
+        --green: #7ed957;
+        --text: #e0e0e0;
+        --text-dim: #bbb;
+        --border: rgba(42, 47, 63, 0.5);
+    }
+    *{margin:0; padding:0; box-sizing:border-box; font-family: 'Poppins', sans-serif;}
+    body{
+        color: var(--text);
+        min-height: 100vh;
+        padding: 10px;
+        background: url('image/img1.jpeg') no-repeat center fixed;
+        background-size: cover;
+        position: relative;
+    }
+    body::before{
+        content: '';
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(10, 13, 20, 0.4); /* LIGHT BACKGROUND */
+        z-index: -1;
+    }
+    .container{ max-width: 1300px; margin: auto; position: relative; z-index: 1; }
+
+    nav{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .logo{ display: flex; align-items: center; gap: 8px; }
+    .logo-icon{ width: 35px; height: 35px; border: 2px solid var(--red); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--red); font-size: 1rem; background: rgba(0,0,0,0.3); }
+    .logo-text h1{ font-size: 1.2rem; font-weight: 700; }
+    .logo-text h1 span{ color: var(--red); }
+    .logo-text p{ font-size: 0.65rem; color: var(--text-dim); }
+    .nav-links{ display: none; }
+    .nav-links a{ color: var(--text-dim); text-decoration: none; display: flex; gap: 8px; align-items: center; cursor: pointer; }
+    .nav-links a.active{ color: var(--text); border-bottom: 2px solid var(--red); padding-bottom: 5px; }
+    .nav-btns{ display: flex; gap: 6px; }
+    .btn-icon{ background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 6px 8px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; backdrop-filter: blur(5px); }
+    .btn-clear{ background: transparent; border: 1px solid var(--red); color: var(--red); padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.75rem; }
+
+    .stats{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+    .stat-card{ background: var(--card); border: 1px solid var(--border); padding: 12px; border-radius: 10px; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(8px); }
+    .stat-icon{ width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; background: rgba(0,0,0,0.2); }
+    .stat-icon.red{ border: 2px solid var(--red); color: var(--red); }
+    .stat-icon.green{ border: 2px solid var(--green); color: var(--green); }
+    .stat-icon.white{ border: 2px solid var(--text); color: var(--text); }
+    .stat-info h4{ font-size: 0.7rem; color: var(--text-dim); font-weight: 400; }
+    .stat-info h2{ font-size: 1.3rem; font-weight: 700; }
+    .stat-info h2 span{ display: block; width: 25px; height: 2px; background: var(--red); margin-top: 2px; }
+    .stat-info h2 span.green{ background: var(--green); }
+    .stat-info h2 span.white{ background: var(--text); }
+
+    .main-grid{ display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 15px; }
+    .card{ background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; width: 100%; overflow: hidden; backdrop-filter: blur(8px); }
+    .card-header{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .card-header h3{ display: flex; gap: 6px; align-items: center; font-size: 0.9rem; }
+    .card-header h3 i{ color: var(--red); }
+    .badge{ background: var(--red); color: #fff; padding: 2px 7px; border-radius: 20px; font-size: 0.7rem; }
+
+    .add-task-box{ display: flex; flex-direction: column; gap: 8px; }
+    .add-task-box input{
+        width: 100%; background: var(--card-light); border: 1px solid var(--border);
+        padding: 10px 12px; border-radius: 8px; color: var(--text); outline: none; font-size: 0.85rem;
+    }
+    .add-task-box input.error{ border-color: var(--red); } /* ERROR BORDER */
+    .add-task-box input::placeholder{ color: var(--text-dim); }
+    .error-text{ color: var(--red); font-size: 0.75rem; display: none; } /* ERROR TEXT */
+    .btn-add{ 
+        width: 100%;
+        background: linear-gradient(135deg, #ff3b3b, #ff1a1a);
+        color: #fff; border: none; padding: 10px; border-radius: 8px; 
+        cursor: pointer; font-weight: 600; font-size: 0.85rem; display: flex; gap: 6px; align-items: center; justify-content: center;
+    }
+
+    .task-list{ display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; }
+    .task-item{ background: var(--card-light); border: 1px solid var(--border); padding: 10px; border-radius: 8px; display: flex; align-items: center; gap: 8px; }
+    .task-checkbox{ width: 18px; height: 18px; border: 2px solid var(--text-dim); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #000; font-size: 0.5rem; flex-shrink: 0; }
+    .task-checkbox.checked{ background: var(--green); border-color: var(--green); }
+    .task-content{ flex: 1; min-width: 0; }
+    .task-content h4{ font-weight: 500; font-size: 0.85rem; word-break: break-word; }
+    .task-content h4.completed{ text-decoration: line-through; color: var(--text-dim); }
+    .task-time{ font-size: 0.65rem; color: var(--text-dim); display: flex; gap: 4px; align-items: center; margin-top: 2px; }
+    .task-actions{ display: flex; gap: 5px; flex-shrink: 0; }
+    .task-actions button{ background: var(--card); border: 1px solid var(--border); color: var(--text-dim); padding: 5px 6px; border-radius: 5px; cursor: pointer; font-size: 0.7rem; }
+    .task-actions .btn-del{ color: var(--red); border-color: var(--red); }
+
+    .empty-state{ text-align: center; padding: 25px 10px; color: var(--text-dim); font-size: 0.85rem; }
+    .empty-state i{ font-size: 2rem; margin-bottom: 6px; opacity: 0.3; }
+
+    .features{ background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 15px; backdrop-filter: blur(8px); }
+    .feature-item{ display: flex; gap: 10px; align-items: center; }
+    .feature-icon{ width: 35px; height: 35px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; background: rgba(0,0,0,0.2); }
+    .feature-icon.calendar{ color: var(--text); border: 1px solid var(--border); }
+    .feature-icon.target{ color: var(--red); border: 1px solid var(--red); }
+    .feature-icon.check{ color: var(--green); border: 1px solid var(--green); }
+    .feature-icon.shield{ color: var(--red); border: 1px solid var(--red); }
+    .feature-text h4{ font-size: 0.85rem; font-weight: 600; margin-bottom: 1px; }
+    .feature-text p{ font-size: 0.75rem; color: var(--text-dim); }
+    .feature-text p span{ color: var(--red); font-weight: 600; }
+
+    .quote{ text-align: center; font-size: 0.8rem; color: var(--text-dim); margin-top: 12px; padding: 0 5px; }
+    .quote i{ color: var(--red); font-size: 1rem; margin: 0 3px; }
+    .quote span{ color: var(--text); }
+
+    .modal{ display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 1000; padding: 10px; }
+    .modal.show{ display: flex; }
+    .modal-content{ background: var(--card); border: 1px solid var(--border); padding: 18px; border-radius: 10px; width: 100%; max-width: 500px; backdrop-filter: blur(10px); }
+    .modal-header{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .modal-header h3{ font-size: 1rem; }
+    .modal-close{ background: none; border: none; color: var(--text-dim); font-size: 1.2rem; cursor: pointer; }
+    .modal-body p{ color: var(--text-dim); line-height: 1.5; font-size: 0.85rem; }
+    .modal-footer{ display: flex; gap: 6px; justify-content: flex-end; margin-top: 12px; }
+    .btn{ padding: 8px 14px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+    .btn-save{ background: var(--red); color: #fff; }
+
+    @media(min-width: 600px){
+        body{ padding: 15px; }
+        .add-task-box{ flex-direction: row; }
+        .btn-add{ width: auto; }
+    }
+    @media(min-width: 768px){
+        body{ padding: 20px; }
+        .logo-text h1{ font-size: 1.8rem; }
+        .logo-text p{ font-size: 0.8rem; }
+        .nav-links{ display: flex; gap: 30px; }
+        .stats{ grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .stat-card{ padding: 20px; }
+        .stat-icon{ width: 50px; height: 50px; font-size: 1.2rem; }
+        .stat-info h4{ font-size: 0.9rem; }
+        .stat-info h2{ font-size: 2rem; }
+        .main-grid{ grid-template-columns: 1fr 1fr; gap: 25px; }
+        .card{ padding: 25px; }
+        .features{ grid-template-columns: repeat(4, 1fr); padding: 25px; }
+        .quote{ font-size: 1.1rem; }
+        .add-task-box input{ font-size: 1rem; padding: 14px 15px; }
+        .btn-add{ font-size: 1rem; padding: 14px 25px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <nav>
+        <div class="logo">
+            <div class="logo-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+            <div class="logo-text">
+                <h1>Task<span>Master</span></h1>
+                <p>Plan better. Do more. Achieve daily.</p>
+            </div>
+        </div>
+        <div class="nav-links">
+            <a href="#" class="active"><i class="fa-solid fa-house"></i> Dashboard</a>
+            <a onclick="openAboutModal()"><i class="fa-solid fa-circle-info"></i> About</a>
+        </div>
+        <div class="nav-btns">
+            <button class="btn-icon"><i class="fa-solid fa-moon"></i></button>
+            <button class="btn-clear" onclick="clearAll()"><i class="fa-solid fa-trash"></i> Clear</button>
+        </div>
+    </nav>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-icon red"><i class="fa-solid fa-clipboard-list"></i></div>
+            <div class="stat-info">
+                <h4>Pending Tasks</h4>
+                <h2 id="pendingStat">00<span></span></h2>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="fa-solid fa-check"></i></div>
+            <div class="stat-info">
+                <h4>Completed</h4>
+                <h2 id="completedStat">00<span class="green"></span></h2>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon white"><i class="fa-solid fa-calendar-days"></i></div>
+            <div class="stat-info">
+                <h4>Total Tasks</h4>
+                <h2 id="totalStat">00<span class="white"></span></h2>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon white"><i class="fa-solid fa-clock"></i></div>
+            <div class="stat-info">
+                <h4>Date</h4>
+                <h2 id="todayDate" style="font-size: 0.9rem;">14 July 2026</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-grid">
+        <div>
+            <div class="card" style="margin-bottom: 12px;">
+                <div class="card-header"><h3><i class="fa-solid fa-pen-to-square"></i> Add New Task</h3></div>
+                <div class="add-task-box">
+                    <div style="flex:1">
+                        <input type="text" id="taskInput" placeholder="What do you want to do?" oninput="hideError()">
+                        <p class="error-text" id="errorText">Please enter a task!</p>
+                    </div>
+                    <button class="btn-add" onclick="addTask()"><i class="fa-solid fa-plus"></i> Add Task</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-thumbtack"></i> Pending Tasks</h3>
+                    <span class="badge" id="pendingBadge">0</span>
+                </div>
+                <div class="task-list" id="pendingList"></div>
+            </div>
+        </div>
+
+        <div>
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-circle-check"></i> Completed Tasks</h3>
+                    <span class="badge" id="completedBadge">0</span>
+                </div>
+                <div class="task-list" id="completedList"></div>
+                <div class="empty-state" id="completedEmpty">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    <h4>All done! Great work</h4>
+                    <p>No more completed tasks left.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="features">
+        <div class="feature-item">
+            <div class="feature-icon calendar"><i class="fa-solid fa-calendar-days"></i></div>
+            <div class="feature-text">
+                <h4>Organize</h4>
+                <p>Your daily tasks</p>
+            </div>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon target"><i class="fa-solid fa-bullseye"></i></div>
+            <div class="feature-text">
+                <h4>Stay Focused</h4>
+                <p>One step at a time</p>
+            </div>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon check"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="feature-text">
+                <h4>Track Progress</h4>
+                <p>See your achievements</p>
+            </div>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon shield"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="feature-text">
+                <h4>Save Auto</h4>
+                <p>Using <span>localStorage</span></p>
+            </div>
+        </div>
+    </div>
+
+    <p class="quote"><i class="fa-solid fa-quote-left"></i> <span>Small steps every day lead to big results.</span> <i class="fa-solid fa-quote-right"></i></p>
+</div>
+
+<div class="modal" id="aboutModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-circle-info"></i> About TaskMaster</h3>
+            <button class="modal-close" onclick="closeAboutModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <p><b>TaskMaster v1.0</b></p>
+            <p style="margin-top: 10px;">Smart To-Do app to organize daily tasks efficiently.</p>
+            <p style="margin-top: 10px;">Features: <br>✓ Add, Edit, Delete <br>✓ Track Tasks <br>✓ Auto Save <br>✓ Responsive</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-save" onclick="closeAboutModal()">Got it</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let tasks = JSON.parse(localStorage.getItem('taskmaster_tasks')) || [];
+
+document.getElementById('todayDate').innerText = new Date().toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'});
+
+function save(){ localStorage.setItem('taskmaster_tasks', JSON.stringify(tasks)); }
+
+function openAboutModal(){ document.getElementById('aboutModal').classList.add('show'); }
+function closeAboutModal(){ document.getElementById('aboutModal').classList.remove('show'); }
+
+function hideError(){
+    document.getElementById('taskInput').classList.remove('error');
+    document.getElementById('errorText').style.display = 'none';
+}
+
+function addTask(){
+    const input = document.getElementById('taskInput');
+    const errorText = document.getElementById('errorText');
+    const text = input.value.trim();
+    if(!text){
+        input.classList.add('error'); // red border
+        errorText.style.display = 'block'; // show text below
+        return;
+    }
+    
+    tasks.push({
+        id: Date.now(),
+        text: text,
+        completed: false,
+        createdAt: new Date().toLocaleString('en-GB', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'})
+    });
+    input.value = "";
+    hideError();
+    save(); render();
+}
+
+function editTask(id){
+    const task = tasks.find(t => t.id === id);
+    const newText = prompt("Edit your task:", task.text);
+    if(newText && newText.trim()){ task.text = newText.trim(); save(); render(); }
+}
+
+function toggleTask(id){
+    tasks = tasks.map(t => t.id === id ? {...t, completed: !t.completed, completedAt: new Date().toLocaleString('en-GB', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'})} : t);
+    save(); render();
+}
+
+function deleteTask(id){
+    if(confirm("Delete this task?")){
+        tasks = tasks.filter(t => t.id !== id);
+        save(); render();
+    }
+}
+
+function clearAll(){
+    if(confirm("Delete all tasks?")){
+        tasks = [];
+        localStorage.removeItem('taskmaster_tasks');
+        save(); render();
+    }
+}
+
+function render(){
+    const pending = tasks.filter(t => !t.completed);
+    const completed = tasks.filter(t => t.completed);
+
+    document.getElementById('pendingStat').innerHTML = String(pending.length).padStart(2,'0') + '<span></span>';
+    document.getElementById('completedStat').innerHTML = String(completed.length).padStart(2,'0') + '<span class="green"></span>';
+    document.getElementById('totalStat').innerHTML = String(tasks.length).padStart(2,'0') + '<span class="white"></span>';
+    document.getElementById('pendingBadge').innerText = pending.length;
+    document.getElementById('completedBadge').innerText = completed.length;
+
+    const pendingList = document.getElementById('pendingList');
+    pendingList.innerHTML = pending.length === 0 ? '<p style="color:#888; text-align:center; font-size:0.8rem;">No pending tasks</p>' : '';
+    pending.forEach(task => {
+        pendingList.innerHTML += `
+        <div class="task-item">
+            <div class="task-checkbox" onclick="toggleTask(${task.id})"></div>
+            <div class="task-content">
+                <h4>${task.text}</h4>
+                <div class="task-time"><i class="fa-solid fa-clock"></i> ${task.createdAt}</div>
+            </div>
+            <div class="task-actions">
+                <button onclick="editTask(${task.id})"><i class="fa-solid fa-pen"></i></button>
+                <button class="btn-del" onclick="deleteTask(${task.id})"><i class="fa-solid fa-trash"></i></button>
+            </div>
+        </div>`;
+    });
+
+    const completedList = document.getElementById('completedList');
+    const completedEmpty = document.getElementById('completedEmpty');
+    completedList.innerHTML = '';
+    if(completed.length === 0){
+        completedEmpty.style.display = 'block';
+    } else {
+        completedEmpty.style.display = 'none';
+        completed.forEach(task => {
+            completedList.innerHTML += `
+            <div class="task-item">
+                <div class="task-checkbox checked" onclick="toggleTask(${task.id})"><i class="fa-solid fa-check"></i></div>
+                <div class="task-content">
+                    <h4 class="completed">${task.text}</h4>
+                    <div class="task-time"><i class="fa-solid fa-clock"></i> ${task.completedAt}</div>
+                </div>
+                <div class="task-actions">
+                    <button class="btn-del" onclick="deleteTask(${task.id})"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>`;
+        });
+    }
+}
+
+document.getElementById('taskInput').addEventListener('keypress', e => { if(e.key === 'Enter') addTask(); });
+
+render();
+</script>
+
+</body>
+</html>
