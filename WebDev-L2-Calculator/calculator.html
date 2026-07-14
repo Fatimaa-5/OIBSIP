@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title> Calculator</title>
+<style>
+    *{margin:0; padding:0; box-sizing:border-box; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;}
+
+    body{
+        display:flex; justify-content:center; align-items:center;
+        height:100vh;
+        background: linear-gradient(135deg, #0a0a0a 0%, #1c1c1e 50%, #0a0a0a 100%);
+    }
+
+    .calculator{
+        background: rgba(30, 30, 35, 0.6);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 30px;
+        padding: 20px;
+        width: 340px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    .display{
+        background: rgba(0,0,0,0.3);
+        border-radius: 20px;
+        padding: 20px;
+        margin-bottom: 20px;
+        text-align: right;
+        color: #fff;
+        min-height: 100px;
+        display:flex; flex-direction:column; justify-content:flex-end;
+    }
+    .previous{
+        font-size: 1rem; color: rgba(255,255,255,0.6);
+        height: 24px; overflow: hidden;
+    }
+    .current{
+        font-size: 2.8rem; font-weight: 300; word-wrap: break-word;
+    }
+
+    .buttons{
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+    }
+
+    button{
+        height: 70px;
+        border: none;
+        border-radius: 50%;
+        font-size: 1.6rem;
+        font-weight: 400;
+        cursor: pointer;
+        background: rgba(58, 58, 60, 0.8);
+        color: #fff;
+        backdrop-filter: blur(10px);
+        transition: all 0.1s ease;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    button:active{ transform: scale(0.92); }
+
+    /* Apple Colors */
+    .operator{ background: #FF9500; color: #fff; } /* Orange */
+    .operator.active{ background: #fff; color: #FF9500; }
+    .function{ background: #A5A5A7; color: #000; } /* Gray */
+    .equals{ background: #34C759; color: #fff; } /* Apple Green */
+    .zero{ grid-column: span 2; border-radius: 35px; text-align: left; padding-left: 28px; }
+</style>
+</head>
+<body>
+
+<div class="calculator">
+    <div class="display">
+        <div class="previous" id="previous"></div>
+        <div class="current" id="current">0</div>
+    </div>
+    <div class="buttons" id="buttons">
+        <button class="function" data-action="clear">AC</button>
+        <button class="function" data-action="delete">⌫</button>
+        <button class="operator" data-operator="÷">÷</button>
+        <button class="operator" data-operator="×">×</button>
+
+        <button data-number="7">7</button>
+        <button data-number="8">8</button>
+        <button data-number="9">9</button>
+        <button class="operator" data-operator="-">-</button>
+
+        <button data-number="4">4</button>
+        <button data-number="5">5</button>
+        <button data-number="6">6</button>
+        <button class="operator" data-operator="+">+</button>
+
+        <button data-number="1">1</button>
+        <button data-number="2">2</button>
+        <button data-number="3">3</button>
+        <button class="equals" data-action="equals">=</button>
+
+        <button class="zero" data-number="0">0</button>
+        <button data-number=".">.</button>
+    </div>
+</div>
+
+<script>
+    class Calculator {
+        constructor(prevEl, currEl) {
+            this.prevEl = prevEl;
+            this.currEl = currEl;
+            this.clear();
+        }
+        clear() {
+            this.current = '0';
+            this.previous = '';
+            this.operation = undefined;
+            this.reset = false;
+        }
+        delete() {
+            if(this.reset) return;
+            this.current = this.current.toString().slice(0, -1);
+            if(this.current === '') this.current = '0';
+        }
+        appendNumber(number) {
+            if(this.reset) { this.current = '0'; this.reset = false; }
+            if(number === '.' && this.current.includes('.')) return;
+            if(this.current === '0' && number !== '.') this.current = '';
+            this.current = this.current.toString() + number.toString();
+        }
+        chooseOperation(operation) {
+            if(this.current === '') return;
+            if(this.previous !== '') this.compute();
+            this.operation = operation;
+            this.previous = this.current;
+            this.current = '';
+        }
+        compute() {
+            let computation;
+            const prev = parseFloat(this.previous);
+            const current = parseFloat(this.current);
+            if(isNaN(prev) || isNaN(current)) return;
+            
+            switch(this.operation){
+                case '+': computation = prev + current; break;
+                case '-': computation = prev - current; break;
+                case '×': computation = prev * current; break;
+                case '÷': 
+                    if(current === 0){ alert("Error: Division by Zero"); return; }
+                    computation = prev / current; 
+                    break;
+                default: return;
+            }
+            this.current = computation;
+            this.operation = undefined;
+            this.previous = '';
+        }
+        updateDisplay() {
+            this.currEl.innerText = this.current;
+            if(this.operation != null){
+                this.prevEl.innerText = `${this.previous} ${this.operation}`;
+            } else {
+                this.prevEl.innerText = '';
+            }
+        }
+    }
+
+    const prevEl = document.getElementById('previous');
+    const currEl = document.getElementById('current');
+    const calculator = new Calculator(prevEl, currEl);
+
+    document.getElementById('buttons').addEventListener('click', e => {
+        if(!e.target.matches('button')) return;
+        const btn = e.target;
+
+        if(btn.dataset.number) calculator.appendNumber(btn.dataset.number);
+        if(btn.dataset.operator) calculator.chooseOperation(btn.dataset.operator);
+        if(btn.dataset.action === 'clear') calculator.clear();
+        if(btn.dataset.action === 'delete') calculator.delete();
+        if(btn.dataset.action === 'equals') {
+            calculator.compute();
+            calculator.reset = true;
+        }
+        calculator.updateDisplay();
+    });
+</script>
+</body>
+</html>
